@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 from torch.optim import Adam
 from utils.misc import soft_update, hard_update, enable_gradients, disable_gradients
 from utils.agents import AttentionAgent
