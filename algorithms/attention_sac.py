@@ -277,7 +277,11 @@ class AttentionSAC(object):
         """
         Instantiate instance of this class from file created by 'save' method
         """
-        save_dict = torch.load(filename)
+        load_kwargs = {"map_location": "cpu"}
+        try:
+            save_dict = torch.load(filename, weights_only=False, **load_kwargs)
+        except TypeError:
+            save_dict = torch.load(filename, **load_kwargs)
         instance = cls(**save_dict['init_dict'])
         instance.init_dict = save_dict['init_dict']
         for a, params in zip(instance.agents, save_dict['agent_params']):
@@ -288,4 +292,8 @@ class AttentionSAC(object):
             instance.critic.load_state_dict(critic_params['critic'])
             instance.target_critic.load_state_dict(critic_params['target_critic'])
             instance.critic_optimizer.load_state_dict(critic_params['critic_optimizer'])
+        instance.pol_dev = 'cpu'
+        instance.critic_dev = 'cpu'
+        instance.trgt_pol_dev = 'cpu'
+        instance.trgt_critic_dev = 'cpu'
         return instance
