@@ -6,6 +6,15 @@ from utils.critics import AttentionCritic
 
 MSELoss = torch.nn.MSELoss()
 
+
+def _sync_optimizer_state(optimizer):
+    """Move Adam state tensors onto the same device as their parameters."""
+    for param, state in optimizer.state.items():
+        for key, value in state.items():
+            if torch.is_tensor(value):
+                state[key] = value.to(param.device)
+
+
 class AttentionSAC(object):
     """
     Wrapper class for SAC agents with central attention critic in multi-agent
@@ -199,6 +208,9 @@ class AttentionSAC(object):
         if not self.trgt_critic_dev == device:
             self.target_critic = fn(self.target_critic)
             self.trgt_critic_dev = device
+        _sync_optimizer_state(self.critic_optimizer)
+        for agent in self.agents:
+            _sync_optimizer_state(agent.policy_optimizer)
 
     def prep_rollouts(self, device='cpu'):
         for a in self.agents:
